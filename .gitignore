@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+packages/shared/dist/
+packages/backend/dist/
+packages/frontend/dist/
+
+# Database
+data/*.db
+data/*.db-journal
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+packages/backend/prisma/migrations/
+
+# Cache
+.cache/
+
+# Claude
+.claude/

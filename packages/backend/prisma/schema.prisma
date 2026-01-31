@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../../../data/parliament.db"
+}
+
+model Session {
+  id        Int       @id
+  name      String
+  startDate DateTime
+  endDate   DateTime?
+  isCurrent Boolean   @default(false)
+  bills     Bill[]
+
+  @@map("sessions")
+}
+
+model Bill {
+  id                  Int         @id
+  shortTitle          String
+  longTitle           String?
+  sessionId           Int         // Current active session
+  introducedSessionId Int?        // Original session where bill was introduced
+  originatingHouse    String
+  currentHouse        String
+  isWithdrawn         Boolean     @default(false)
+  isDefeated          Boolean     @default(false)
+  isAct               Boolean     @default(false)
+  lastUpdate          DateTime
+  session             Session     @relation(fields: [sessionId], references: [id])
+  stages              BillStage[]
+
+  @@index([sessionId])
+  @@index([introducedSessionId])
+  @@map("bills")
+}
+
+model BillStage {
+  id          Int         @id
+  billId      Int
+  stageTypeId Int
+  description String
+  house       String
+  sortOrder   Int
+  bill        Bill        @relation(fields: [billId], references: [id])
+  amendments  Amendment[]
+
+  @@index([billId])
+  @@map("bill_stages")
+}
+
+model Amendment {
+  id                  Int                @id
+  billStageId         Int
+  amendmentNumber     String?
+  amendmentType       String
+  decision            String
+  decisionExplanation String?
+  summaryText         String?
+  marshalledListText  String?
+  billStage           BillStage          @relation(fields: [billStageId], references: [id])
+  sponsors            AmendmentSponsor[]
+
+  @@index([billStageId])
+  @@index([decision])
+  @@map("amendments")
+}
+
+model AmendmentSponsor {
+  amendmentId Int
+  memberId    Int
+  isLead      Boolean @default(false)
+  sortOrder   Int
+  amendment   Amendment @relation(fields: [amendmentId], references: [id])
+  member      Member    @relation(fields: [memberId], references: [id])
+
+  @@id([amendmentId, memberId])
+  @@index([memberId])
+  @@map("amendment_sponsors")
+}
+
+model Member {
+  id           Int                @id
+  name         String
+  displayName  String
+  party        String
+  partyColour  String?
+  house        String
+  memberFrom   String
+  thumbnailUrl String?
+  sponsorships AmendmentSponsor[]
+
+  @@index([name])
+  @@index([party])
+  @@map("members")
+}
+
+model SyncLog {
+  id        Int      @id @default(autoincrement())
+  type      String   // 'full' or 'incremental'
+  status    String   // 'running', 'completed', 'failed'
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  error     String?
+  stats     String?  // JSON with sync statistics
+
+  @@map("sync_logs")
+}
