@@ -123,7 +123,8 @@ export default function AmendmentsPage() {
         billId,
         decision: decision || undefined,
         stage: stage || undefined,
-        take: 10000,
+        house: house || undefined,
+        take: 100000,
       });
 
       const headers = ['Bill', 'Stage', 'House', 'Decision', 'Sponsors', 'Summary'];
