@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
 
-const router = Router();
+const router: RouterType = Router();
 
 // GET /api/v1/bills - List bills with optional filtering
 router.get('/', async (req, res) => {
@@ -115,7 +115,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Bill not found' });
     }
 
-    res.json({
+    return res.json({
       ...bill,
       stages: bill.stages.map(stage => ({
         ...stage,
@@ -124,7 +124,7 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching bill:', error);
-    res.status(500).json({ error: 'Failed to fetch bill' });
+    return res.status(500).json({ error: 'Failed to fetch bill' });
   }
 });
 

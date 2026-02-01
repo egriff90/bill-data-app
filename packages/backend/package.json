@@ -9,7 +9,9 @@
     "sync": "tsx src/sync/run-sync.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "db:migrate-data": "tsx ../../scripts/migrate-data.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@bill-data-app/shared": "workspace:*",
@@ -20,10 +22,13 @@
     "p-queue": "^6.6.2"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/express-serve-static-core": "^5.1.1",
     "@types/node": "^20.11.5",
     "@types/node-cron": "^3.0.11",
+    "better-sqlite3": "^11.7.0",
     "prisma": "^5.9.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
