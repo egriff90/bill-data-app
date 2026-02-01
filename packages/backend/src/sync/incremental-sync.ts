@@ -29,8 +29,10 @@ function isActiveBill(bill: ParliamentBill): boolean {
 }
 
 /**
- * Run an incremental sync that only processes active bills
- * (bills that are not withdrawn, defeated, or marked as Act)
+ * Run an incremental sync that only processes active bills from the current session.
+ * - Only syncs bills from the current parliamentary session (where endDate is null)
+ * - Only processes active bills (not withdrawn, defeated, or marked as Act)
+ * - Carry-over bills from previous sessions are included if they're active in the current session
  */
 export async function runIncrementalSync(): Promise<SyncStats> {
   const stats: SyncStats = {
@@ -45,7 +47,7 @@ export async function runIncrementalSync(): Promise<SyncStats> {
 
   const memberIdsToFetch = new Set<number>();
 
-  console.log('Starting incremental sync (active bills only)...');
+  console.log('Starting incremental sync (current session, active bills only)...');
 
   const syncLog = await prisma.syncLog.create({
     data: {
@@ -57,9 +59,9 @@ export async function runIncrementalSync(): Promise<SyncStats> {
   try {
     // Get sessions (last 4)
     const sessions = await parliamentApi.getSessions();
-    console.log(`Processing ${sessions.length} sessions`);
+    console.log(`Found ${sessions.length} sessions`);
 
-    // Upsert sessions
+    // Upsert all sessions to keep session data current
     for (const session of sessions) {
       await prisma.session.upsert({
         where: { id: session.id },
@@ -80,35 +82,40 @@ export async function runIncrementalSync(): Promise<SyncStats> {
       stats.sessionsProcessed++;
     }
 
-    // Process only active bills from each session
-    for (const session of sessions) {
-      console.log(`\nFetching bills for session ${session.name} (ID: ${session.id})...`);
+    // Find the current session (no end date)
+    const currentSession = sessions.find(s => s.endDate === null);
 
-      let bills: ParliamentBill[];
+    if (!currentSession) {
+      throw new Error('No current session found (all sessions have end dates)');
+    }
+
+    console.log(`\nProcessing current session: ${currentSession.name} (ID: ${currentSession.id})`);
+
+    // Fetch bills for current session only
+    let bills: ParliamentBill[];
+    try {
+      bills = await parliamentApi.getBillsForSession(currentSession.id);
+    } catch (error) {
+      const errorMsg = `Failed to fetch bills for current session ${currentSession.id}: ${error}`;
+      console.error(errorMsg);
+      stats.errors.push(errorMsg);
+      throw error;
+    }
+
+    // Filter to active bills only
+    const activeBills = bills.filter(isActiveBill);
+    console.log(`Found ${bills.length} bills, ${activeBills.length} active (skipping ${bills.length - activeBills.length} withdrawn/defeated/acts)`);
+
+    stats.billsSkipped += bills.length - activeBills.length;
+
+    for (const bill of activeBills) {
       try {
-        bills = await parliamentApi.getBillsForSession(session.id);
+        await processBill(bill, currentSession.id, memberIdsToFetch, stats);
+        await sleep(BILL_DELAY_MS);
       } catch (error) {
-        const errorMsg = `Failed to fetch bills for session ${session.id}: ${error}`;
+        const errorMsg = `Failed to process bill ${bill.billId}: ${error}`;
         console.error(errorMsg);
         stats.errors.push(errorMsg);
-        continue;
-      }
-
-      // Filter to active bills only
-      const activeBills = bills.filter(isActiveBill);
-      console.log(`Found ${bills.length} bills, ${activeBills.length} active (skipping ${bills.length - activeBills.length} withdrawn/defeated/acts)`);
-
-      stats.billsSkipped += bills.length - activeBills.length;
-
-      for (const bill of activeBills) {
-        try {
-          await processBill(bill, session.id, memberIdsToFetch, stats);
-          await sleep(BILL_DELAY_MS);
-        } catch (error) {
-          const errorMsg = `Failed to process bill ${bill.billId}: ${error}`;
-          console.error(errorMsg);
-          stats.errors.push(errorMsg);
-        }
       }
     }
 
