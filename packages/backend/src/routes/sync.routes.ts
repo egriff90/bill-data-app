@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
 
-const router = Router();
+const router: RouterType = Router();
 
 // GET /api/v1/sync/status - Get sync status
 router.get('/status', async (req, res) => {

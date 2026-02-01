@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
 
-const router = Router();
+const router: RouterType = Router();
 
 // GET /api/v1/members/search - Search members by name
 router.get('/search', async (req, res) => {
@@ -16,9 +16,9 @@ router.get('/search', async (req, res) => {
 
     const where: any = {
       OR: [
-        { name: { contains: query } },
-        { displayName: { contains: query } },
-        { memberFrom: { contains: query } },
+        { name: { contains: query, mode: 'insensitive' } },
+        { displayName: { contains: query, mode: 'insensitive' } },
+        { memberFrom: { contains: query, mode: 'insensitive' } },
       ],
     };
 
@@ -32,10 +32,10 @@ router.get('/search', async (req, res) => {
       orderBy: { displayName: 'asc' },
     });
 
-    res.json(members);
+    return res.json(members);
   } catch (error) {
     console.error('Error searching members:', error);
-    res.status(500).json({ error: 'Failed to search members' });
+    return res.status(500).json({ error: 'Failed to search members' });
   }
 });
 
@@ -76,7 +76,7 @@ router.get('/:id', async (req, res) => {
       decisionCounts[a.decision] = (decisionCounts[a.decision] || 0) + 1;
     }
 
-    res.json({
+    return res.json({
       id: member.id,
       name: member.name,
       displayName: member.displayName,
@@ -103,7 +103,7 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching member:', error);
-    res.status(500).json({ error: 'Failed to fetch member' });
+    return res.status(500).json({ error: 'Failed to fetch member' });
   }
 });
 

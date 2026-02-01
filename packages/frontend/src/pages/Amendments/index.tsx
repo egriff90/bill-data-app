@@ -234,7 +234,7 @@ export default function AmendmentsPage() {
               <option value="">All Stages</option>
               {stages.map(s => (
                 <option key={s.groupKey} value={s.groupKey}>
-                  {s.groupLabel} ({s.count.toLocaleString()})
+                  {s.groupLabel}
                 </option>
               ))}
             </select>
@@ -252,7 +252,7 @@ export default function AmendmentsPage() {
               <option value="">All Decisions</option>
               {decisions.map(d => (
                 <option key={d.groupKey} value={d.groupKey}>
-                  {DECISION_LABELS[d.groupKey] || d.groupKey} ({d.count.toLocaleString()})
+                  {DECISION_LABELS[d.groupKey] || d.groupKey}
                 </option>
               ))}
             </select>
