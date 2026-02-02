@@ -1,8 +1,13 @@
 [build]
 builder = "nixpacks"
 
-[deploy]
-startCommand = "cd packages/backend && node dist/index.js"
-
 [variables]
 NODE_ENV = "production"
+
+# Main backend API service
+[services.backend]
+startCommand = "cd packages/backend && node dist/index.js"
+
+# Cron job service
+[services.cron]
+startCommand = "cd packages/backend && node dist/sync/cron-sync.js"
