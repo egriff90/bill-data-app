@@ -30,9 +30,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="text-gray-300">
                   {syncStatus.stats.amendments.toLocaleString()} amendments
                 </div>
-                {syncStatus.lastFullSync && (
+                {(syncStatus.lastFullSync || syncStatus.lastIncrementalSync) && (
                   <div className="text-gray-400 text-xs">
-                    Last sync: {new Date(syncStatus.lastFullSync).toLocaleDateString()}
+                    Last sync:{' '}
+                    {(() => {
+                      const fullDate = syncStatus.lastFullSync ? new Date(syncStatus.lastFullSync) : null;
+                      const incDate = syncStatus.lastIncrementalSync ? new Date(syncStatus.lastIncrementalSync) : null;
+                      const lastDate = fullDate && incDate
+                        ? (fullDate > incDate ? fullDate : incDate)
+                        : fullDate || incDate;
+                      return lastDate?.toLocaleString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZone: 'GMT',
+                        timeZoneName: 'short',
+                      });
+                    })()}
                   </div>
                 )}
               </div>
