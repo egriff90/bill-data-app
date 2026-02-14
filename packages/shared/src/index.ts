@@ -45,6 +45,7 @@ export interface ParliamentBillStage {
 
 export interface ParliamentAmendment {
   amendmentId: number;
+  dNum?: string;
   amendmentType: string;
   lineNumber?: number;
   marshalledListText?: string;
@@ -134,6 +135,7 @@ export interface Amendment {
   id: number;
   billStageId: number;
   amendmentNumber: string | null;
+  dNum: string | null;
   amendmentType: string;
   decision: string;
   decisionExplanation: string | null;

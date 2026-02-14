@@ -79,6 +79,7 @@ router.get('/', async (req, res) => {
       items: amendments.map(a => ({
         id: a.id,
         amendmentNumber: a.amendmentNumber,
+        dNum: a.dNum,
         amendmentType: a.amendmentType,
         decision: a.decision,
         decisionExplanation: a.decisionExplanation,
