@@ -1,9 +1,2 @@
 packages:
   - 'packages/*'
-
-onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
-  - better-sqlite3
-  - esbuild
-  - prisma
