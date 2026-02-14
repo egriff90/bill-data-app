@@ -74,6 +74,7 @@ export class ParliamentApiClient {
     const sessions: ParliamentSession[] = [
       { id: 39, name: '2024-25', startDate: '2024-07-17', endDate: null },
       { id: 38, name: '2023-24', startDate: '2023-11-07', endDate: '2024-05-30' },
+      { id: 37, name: '2022-23', startDate: '2022-05-10', endDate: '2023-10-26' },
     ];
     return sessions;
   }
