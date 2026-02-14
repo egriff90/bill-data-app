@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd packages/backend && node dist/index.js"
+startCommand = "cd packages/backend && NODE_ENV=production node dist/index.js"
 
 [variables]
 NODE_ENV = "production"
