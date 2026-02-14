@@ -225,6 +225,26 @@ async function processBill(
     });
     stats.stagesProcessed++;
 
+    // Upsert stage sittings
+    for (const sitting of stage.stageSittings || []) {
+      await prisma.billStageSitting.upsert({
+        where: { id: sitting.id },
+        update: {
+          billStageId: stage.id,
+          billId: bill.billId,
+          stageId: sitting.stageId,
+          date: sitting.date ? new Date(sitting.date) : null,
+        },
+        create: {
+          id: sitting.id,
+          billStageId: stage.id,
+          billId: bill.billId,
+          stageId: sitting.stageId,
+          date: sitting.date ? new Date(sitting.date) : null,
+        },
+      });
+    }
+
     // Fetch amendments for this stage
     const amendments = await parliamentApi.getAmendments(bill.billId, stage.id);
 

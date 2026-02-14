@@ -41,6 +41,13 @@ export interface ParliamentBillStage {
   description: string;
   sortOrder: number;
   house: string;
+  stageSittings?: Array<{
+    id: number;
+    stageId: number;
+    billStageId: number;
+    billId: number;
+    date: string | null;
+  }>;
 }
 
 export interface ParliamentAmendment {
@@ -131,6 +138,14 @@ export interface BillStage {
   sortOrder: number;
 }
 
+export interface BillStageSitting {
+  id: number;
+  billStageId: number;
+  billId: number;
+  stageId: number;
+  date: Date | null;
+}
+
 export interface Amendment {
   id: number;
   billStageId: number;
@@ -195,6 +210,16 @@ export interface AmendmentStatResult {
   groupLabel: string;
   count: number;
   subGroups?: AmendmentStatResult[];
+}
+
+export interface StageWithDate {
+  billStageId: number;
+  billId: number;
+  billTitle: string;
+  stageDescription: string;
+  house: string;
+  sittingDate: string | null;
+  amendmentCount: number;
 }
 
 export interface SyncStatus {

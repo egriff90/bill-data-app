@@ -77,6 +77,16 @@ export interface StatResult {
   metadata?: Record<string, string>;
 }
 
+export interface StageWithDate {
+  billStageId: number;
+  billId: number;
+  billTitle: string;
+  stageDescription: string;
+  house: string;
+  sittingDate: string | null;
+  amendmentCount: number;
+}
+
 export interface SyncStatus {
   lastFullSync: string | null;
   lastIncrementalSync: string | null;
@@ -156,6 +166,21 @@ export const api = {
   },
 
   getMember: (id: number) => fetchApi<Member & { stats: any; recentAmendments: any[] }>(`/members/${id}`),
+
+  // Stages
+  getStagesWithAmendments: (params: {
+    sessionId: number;
+    house?: string;
+    skip?: number;
+    take?: number;
+  }) => {
+    const query = new URLSearchParams();
+    query.set('sessionId', params.sessionId.toString());
+    if (params.house) query.set('house', params.house);
+    if (params.skip) query.set('skip', params.skip.toString());
+    if (params.take) query.set('take', params.take.toString());
+    return fetchApi<PaginatedResponse<StageWithDate>>(`/stages/with-amendments?${query}`);
+  },
 
   // Sync
   getSyncStatus: () => fetchApi<SyncStatus>('/sync/status'),

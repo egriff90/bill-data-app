@@ -45,11 +45,25 @@ model BillStage {
   description String
   house       String
   sortOrder   Int
-  bill        Bill        @relation(fields: [billId], references: [id])
+  bill        Bill              @relation(fields: [billId], references: [id])
   amendments  Amendment[]
+  sittings    BillStageSitting[]
 
   @@index([billId])
   @@map("bill_stages")
+}
+
+model BillStageSitting {
+  id          Int       @id
+  billStageId Int
+  billId      Int
+  stageId     Int
+  date        DateTime?
+  billStage   BillStage @relation(fields: [billStageId], references: [id])
+
+  @@index([billStageId])
+  @@index([date])
+  @@map("bill_stage_sittings")
 }
 
 model Amendment {

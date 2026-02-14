@@ -4,6 +4,7 @@ import billsRoutes from './bills.routes';
 import amendmentsRoutes from './amendments.routes';
 import membersRoutes from './members.routes';
 import syncRoutes from './sync.routes';
+import stagesRoutes from './stages.routes';
 
 const router: RouterType = Router();
 
@@ -12,5 +13,6 @@ router.use('/bills', billsRoutes);
 router.use('/amendments', amendmentsRoutes);
 router.use('/members', membersRoutes);
 router.use('/sync', syncRoutes);
+router.use('/stages', stagesRoutes);
 
 export default router;
