@@ -257,6 +257,7 @@ async function processAmendment(
     update: {
       billStageId: billStageId,
       amendmentNumber: amendment.lineNumber?.toString() || null,
+      dNum: amendment.dNum || null,
       amendmentType: amendment.amendmentType,
       decision: amendment.decision,
       decisionExplanation: amendment.decisionExplanation || null,
@@ -267,6 +268,7 @@ async function processAmendment(
       id: amendment.amendmentId,
       billStageId: billStageId,
       amendmentNumber: amendment.lineNumber?.toString() || null,
+      dNum: amendment.dNum || null,
       amendmentType: amendment.amendmentType,
       decision: amendment.decision,
       decisionExplanation: amendment.decisionExplanation || null,

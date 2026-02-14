@@ -64,6 +64,7 @@ export function AmendmentTable({ amendments, loading }: AmendmentTableProps) {
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-50 border-b">
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">dNum</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Bill</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Stage</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Decision</th>
@@ -74,6 +75,9 @@ export function AmendmentTable({ amendments, loading }: AmendmentTableProps) {
         <tbody>
           {amendments.map(amendment => (
             <tr key={amendment.id} className="border-b hover:bg-gray-50">
+              <td className="px-4 py-3 text-sm text-gray-600">
+                {amendment.dNum || '-'}
+              </td>
               <td className="px-4 py-3">
                 <div className="font-medium text-gray-900 max-w-xs truncate" title={amendment.bill.shortTitle}>
                   {amendment.bill.shortTitle}
