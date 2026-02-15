@@ -38,6 +38,7 @@ export default function MemberPage() {
   const [member, setMember] = useState<MemberDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -140,16 +141,41 @@ export default function MemberPage() {
                     label={({ name, percent }) =>
                       `${name} (${(percent * 100).toFixed(0)}%)`
                     }
+                    onMouseEnter={(_, index) => setActiveIndex(index)}
+                    onMouseLeave={() => setActiveIndex(null)}
                   >
                     {decisionData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={DECISION_COLORS[entry.name] || '#6b7280'}
+                        opacity={activeIndex === null || activeIndex === index ? 1 : 0.3}
+                        style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
                       />
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                  <Legend
+                    content={({ payload }) => (
+                      <ul style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', padding: 0, margin: 0, listStyle: 'none' }}>
+                        {payload?.map((entry, index) => (
+                          <li
+                            key={`legend-${index}`}
+                            onMouseEnter={() => setActiveIndex(index)}
+                            onMouseLeave={() => setActiveIndex(null)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 4,
+                              opacity: activeIndex === null || activeIndex === index ? 1 : 0.3,
+                              transition: 'opacity 0.2s',
+                              cursor: 'pointer', fontSize: 14,
+                            }}
+                          >
+                            <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', backgroundColor: entry.color }} />
+                            {entry.value}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
