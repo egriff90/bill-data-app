@@ -183,7 +183,7 @@ export const api = {
     if (params.toDate) query.set('toDate', params.toDate);
     if (params.skip) query.set('skip', params.skip.toString());
     if (params.take) query.set('take', params.take.toString());
-    return fetchApi<PaginatedResponse<StageWithDate>>(`/stages/with-amendments?${query}`);
+    return fetchApi<PaginatedResponse<StageWithDate> & { totalAmendments: number }>(`/stages/with-amendments?${query}`);
   },
 
   // Sync

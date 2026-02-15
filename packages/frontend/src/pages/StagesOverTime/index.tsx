@@ -6,6 +6,7 @@ export default function StagesOverTimePage() {
   const [stages, setStages] = useState<StageWithDate[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [totalAmendments, setTotalAmendments] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 50;
 
@@ -42,6 +43,7 @@ export default function StagesOverTimePage() {
       });
       setStages(result.items);
       setTotal(result.total);
+      setTotalAmendments(result.totalAmendments);
     } catch (error) {
       console.error('Failed to load stages:', error);
     } finally {
@@ -179,7 +181,8 @@ export default function StagesOverTimePage() {
               {total === 0
                 ? 'No amending stage sittings'
                 : (<>
-                    {`Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings`}
+                    {`Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings.`}
+                    {` · Total amendments across matched stages: ${totalAmendments.toLocaleString()}`}
                     <br />
                     The count of amendments shown in the table is for the stage as a whole, not per sitting.
                   </>)

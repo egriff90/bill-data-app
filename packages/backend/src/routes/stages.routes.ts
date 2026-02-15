@@ -89,6 +89,16 @@ router.get('/with-amendments', async (req, res) => {
       filtered = filtered.filter(i => i.sittingDate && i.sittingDate <= to);
     }
 
+    // De-duplicate by billStageId and sum amendment counts
+    const seenStageIds = new Set<number>();
+    let totalAmendments = 0;
+    for (const item of filtered) {
+      if (!seenStageIds.has(item.billStageId)) {
+        seenStageIds.add(item.billStageId);
+        totalAmendments += item.amendmentCount;
+      }
+    }
+
     const total = filtered.length;
     const paginatedItems = filtered.slice(skip, skip + take);
 
@@ -97,6 +107,7 @@ router.get('/with-amendments', async (req, res) => {
       total,
       skip,
       take,
+      totalAmendments,
     });
   } catch (error) {
     console.error('Error fetching stages with amendments:', error);
