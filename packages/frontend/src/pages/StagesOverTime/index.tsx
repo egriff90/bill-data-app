@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api, StageWithDate, Session } from '../../api/client';
 import { SessionSelector } from '../../components/data/SessionSelector';
+import TimelineChart from './TimelineChart';
 
 export default function StagesOverTimePage() {
   const [stages, setStages] = useState<StageWithDate[]>([]);
@@ -16,6 +17,11 @@ export default function StagesOverTimePage() {
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
   const [allSessions, setAllSessions] = useState(false);
+
+  // Timeline view
+  const [viewMode, setViewMode] = useState<'table' | 'timeline'>('table');
+  const [timelineData, setTimelineData] = useState<StageWithDate[] | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
 
   // Auto-select current session on mount
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
@@ -58,9 +64,10 @@ export default function StagesOverTimePage() {
     }
   }, [loadStages, sessionsLoaded]);
 
-  // Reset page when filters change
+  // Reset page and clear timeline cache when filters change
   useEffect(() => {
     setPage(0);
+    setTimelineData(null);
   }, [sessionId, house, fromDate, toDate, allSessions]);
 
   // Format date for display
@@ -107,6 +114,37 @@ export default function StagesOverTimePage() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to export:', error);
+    }
+  };
+
+  // Fetch all data for timeline view
+  const loadTimelineData = async () => {
+    if (!allSessions && !sessionId) return;
+    setTimelineLoading(true);
+    try {
+      const result = await api.getStagesWithAmendments({
+        sessionId: allSessions ? undefined : sessionId,
+        house: house || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
+        take: 100000,
+      });
+      setTimelineData(result.items);
+    } catch (error) {
+      console.error('Failed to load timeline data:', error);
+    } finally {
+      setTimelineLoading(false);
+    }
+  };
+
+  const handleToggleView = () => {
+    if (viewMode === 'table') {
+      setViewMode('timeline');
+      if (timelineData === null) {
+        loadTimelineData();
+      }
+    } else {
+      setViewMode('table');
     }
   };
 
@@ -186,7 +224,7 @@ export default function StagesOverTimePage() {
         <div className="text-sm text-gray-600">
           {loading ? (
             'Loading...'
-          ) : (
+          ) : viewMode === 'table' ? (
             <>
               {total === 0
                 ? 'No amending stage sittings'
@@ -198,112 +236,129 @@ export default function StagesOverTimePage() {
                   </>)
               }
             </>
+          ) : (
+            total === 0 ? 'No amending stage sittings' : `${total.toLocaleString()} amending stage sittings · Total amendments: ${totalAmendments.toLocaleString()}`
           )}
         </div>
-        <button
-          onClick={exportToCSV}
-          disabled={loading || total === 0}
-          className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Export CSV
-        </button>
-      </div>
-
-      {/* Results table */}
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bill
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stage
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                House
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sitting Date
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amendments
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                  Loading...
-                </td>
-              </tr>
-            ) : stages.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                  No amending stages found for this session.
-                </td>
-              </tr>
-            ) : (
-              stages.map((stage, index) => (
-                <tr key={`${stage.billStageId}-${stage.sittingDate}-${index}`} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {stage.billTitle}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {stage.stageDescription}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {stage.house}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {formatDate(stage.sittingDate)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
-                    {stage.amendmentCount.toLocaleString()}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex gap-2">
           <button
-            onClick={() => setPage(p => Math.max(0, p - 1))}
-            disabled={page === 0}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleToggleView}
+            disabled={loading || total === 0}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Previous
+            {viewMode === 'table' ? 'Timeline view' : 'Table view'}
           </button>
-          <span className="px-4 py-2 text-sm text-gray-600 flex items-center gap-1">
-            Page
-            <input
-              type="number"
-              min={1}
-              max={totalPages}
-              value={page + 1}
-              onChange={e => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val) && val >= 1 && val <= totalPages) {
-                  setPage(val - 1);
-                }
-              }}
-              className="w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm"
-            />
-            of {totalPages}
-          </span>
           <button
-            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={exportToCSV}
+            disabled={loading || total === 0}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Next
+            Export CSV
           </button>
         </div>
+      </div>
+
+      {viewMode === 'table' ? (
+        <>
+          {/* Results table */}
+          <div className="bg-white border rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Bill
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stage
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    House
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sitting Date
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amendments
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : stages.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                      No amending stages found for this session.
+                    </td>
+                  </tr>
+                ) : (
+                  stages.map((stage, index) => (
+                    <tr key={`${stage.billStageId}-${stage.sittingDate}-${index}`} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {stage.billTitle}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {stage.stageDescription}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {stage.house}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {formatDate(stage.sittingDate)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                        {stage.amendmentCount.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2 text-sm text-gray-600 flex items-center gap-1">
+                Page
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={page + 1}
+                  onChange={e => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                      setPage(val - 1);
+                    }
+                  }}
+                  className="w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+                />
+                of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <TimelineChart data={timelineData} loading={timelineLoading} />
       )}
     </div>
   );
