@@ -146,7 +146,10 @@ export default function StagesOverTimePage() {
             'Loading...'
           ) : (
             <>
-              Showing {stages.length} of {total.toLocaleString()} amending stages
+              {total === 0
+                ? 'No amending stage sittings'
+                : `Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings`
+              }
             </>
           )}
         </div>

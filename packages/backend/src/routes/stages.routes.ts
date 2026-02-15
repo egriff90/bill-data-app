@@ -25,29 +25,20 @@ router.get('/with-amendments', async (req, res) => {
       where.house = house;
     }
 
-    const [stages, total] = await Promise.all([
-      prisma.billStage.findMany({
-        where,
-        skip,
-        take,
-        include: {
-          bill: {
-            select: { id: true, shortTitle: true },
-          },
-          sittings: {
-            orderBy: { date: 'asc' },
-          },
-          _count: {
-            select: { amendments: true },
-          },
+    const stages = await prisma.billStage.findMany({
+      where,
+      include: {
+        bill: {
+          select: { id: true, shortTitle: true },
         },
-        orderBy: [
-          { sittings: { _count: 'desc' } },
-          { id: 'desc' },
-        ],
-      }),
-      prisma.billStage.count({ where }),
-    ]);
+        sittings: {
+          orderBy: { date: 'asc' },
+        },
+        _count: {
+          select: { amendments: true },
+        },
+      },
+    });
 
     // Flatten: one row per sitting date (or one row if no sittings)
     const items: any[] = [];
@@ -85,8 +76,11 @@ router.get('/with-amendments', async (req, res) => {
       return a.sittingDate.localeCompare(b.sittingDate);
     });
 
+    const total = items.length;
+    const paginatedItems = items.slice(skip, skip + take);
+
     res.json({
-      items,
+      items: paginatedItems,
       total,
       skip,
       take,
