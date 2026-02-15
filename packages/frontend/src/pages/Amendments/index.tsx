@@ -319,7 +319,7 @@ export default function AmendmentsPage() {
                   setPage(val - 1);
                 }
               }}
-              className="w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+              className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm"
             />
             of {totalPages}
           </span>
