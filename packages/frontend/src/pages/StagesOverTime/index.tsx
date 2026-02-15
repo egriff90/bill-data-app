@@ -12,6 +12,8 @@ export default function StagesOverTimePage() {
   // Filters
   const [sessionId, setSessionId] = useState<number | undefined>();
   const [house, setHouse] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
 
   // Auto-select current session on mount
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
@@ -33,6 +35,8 @@ export default function StagesOverTimePage() {
       const result = await api.getStagesWithAmendments({
         sessionId,
         house: house || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
         skip: page * pageSize,
         take: pageSize,
       });
@@ -43,7 +47,7 @@ export default function StagesOverTimePage() {
     } finally {
       setLoading(false);
     }
-  }, [sessionId, house, page]);
+  }, [sessionId, house, fromDate, toDate, page]);
 
   useEffect(() => {
     if (sessionsLoaded) {
@@ -54,7 +58,7 @@ export default function StagesOverTimePage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(0);
-  }, [sessionId, house]);
+  }, [sessionId, house, fromDate, toDate]);
 
   // Format date for display
   const formatDate = (dateStr: string | null) => {
@@ -73,6 +77,8 @@ export default function StagesOverTimePage() {
       const allResults = await api.getStagesWithAmendments({
         sessionId,
         house: house || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
         take: 100000,
       });
 
@@ -114,7 +120,7 @@ export default function StagesOverTimePage() {
 
       {/* Filters */}
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Session
@@ -136,6 +142,30 @@ export default function StagesOverTimePage() {
               <option value="Lords">Lords</option>
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              From date
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              To date
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            />
+          </div>
         </div>
       </div>
 
@@ -148,7 +178,11 @@ export default function StagesOverTimePage() {
             <>
               {total === 0
                 ? 'No amending stage sittings'
-                : `Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings`
+                : (<>
+                    {`Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings`}
+                    <br />
+                    The count of amendments shown in the table is for the stage as a whole, not per sitting.
+                  </>)
               }
             </>
           )}
@@ -232,8 +266,22 @@ export default function StagesOverTimePage() {
           >
             Previous
           </button>
-          <span className="px-4 py-2 text-sm text-gray-600">
-            Page {page + 1} of {totalPages}
+          <span className="px-4 py-2 text-sm text-gray-600 flex items-center gap-1">
+            Page
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page + 1}
+              onChange={e => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                  setPage(val - 1);
+                }
+              }}
+              className="w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+            />
+            of {totalPages}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}

@@ -8,6 +8,8 @@ router.get('/with-amendments', async (req, res) => {
   try {
     const sessionId = req.query.sessionId ? parseInt(req.query.sessionId as string) : undefined;
     const house = req.query.house as string | undefined;
+    const fromDate = req.query.fromDate as string | undefined;
+    const toDate = req.query.toDate as string | undefined;
     const skip = parseInt(req.query.skip as string) || 0;
     const take = parseInt(req.query.take as string) || 100;
 
@@ -76,8 +78,19 @@ router.get('/with-amendments', async (req, res) => {
       return a.sittingDate.localeCompare(b.sittingDate);
     });
 
-    const total = items.length;
-    const paginatedItems = items.slice(skip, skip + take);
+    // Filter by date range
+    let filtered = items;
+    if (fromDate) {
+      const from = new Date(fromDate).toISOString();
+      filtered = filtered.filter(i => i.sittingDate && i.sittingDate >= from);
+    }
+    if (toDate) {
+      const to = new Date(toDate + 'T23:59:59.999Z').toISOString();
+      filtered = filtered.filter(i => i.sittingDate && i.sittingDate <= to);
+    }
+
+    const total = filtered.length;
+    const paginatedItems = filtered.slice(skip, skip + take);
 
     res.json({
       items: paginatedItems,

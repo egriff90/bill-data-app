@@ -24,7 +24,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">UK Parliament Bill Amendments</h1>
-              <p className="text-gray-300 text-sm">Query and analyze amendment data</p>
+              <p className="text-gray-300 text-sm">Query and analyse amendment data</p>
             </div>
             {syncStatus && (
               <div className="text-right text-sm">

@@ -171,12 +171,16 @@ export const api = {
   getStagesWithAmendments: (params: {
     sessionId: number;
     house?: string;
+    fromDate?: string;
+    toDate?: string;
     skip?: number;
     take?: number;
   }) => {
     const query = new URLSearchParams();
     query.set('sessionId', params.sessionId.toString());
     if (params.house) query.set('house', params.house);
+    if (params.fromDate) query.set('fromDate', params.fromDate);
+    if (params.toDate) query.set('toDate', params.toDate);
     if (params.skip) query.set('skip', params.skip.toString());
     if (params.take) query.set('take', params.take.toString());
     return fetchApi<PaginatedResponse<StageWithDate>>(`/stages/with-amendments?${query}`);
