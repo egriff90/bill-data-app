@@ -13,15 +13,13 @@ router.get('/with-amendments', async (req, res) => {
     const skip = parseInt(req.query.skip as string) || 0;
     const take = parseInt(req.query.take as string) || 100;
 
-    if (!sessionId) {
-      res.status(400).json({ error: 'sessionId is required' });
-      return;
-    }
-
     const where: any = {
-      bill: { sessionId },
       amendments: { some: {} },
     };
+
+    if (sessionId) {
+      where.bill = { sessionId };
+    }
 
     if (house) {
       where.house = house;

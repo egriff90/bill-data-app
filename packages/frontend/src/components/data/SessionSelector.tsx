@@ -5,9 +5,10 @@ interface SessionSelectorProps {
   value: number | undefined;
   onChange: (sessionId: number | undefined) => void;
   showAll?: boolean;
+  disabled?: boolean;
 }
 
-export function SessionSelector({ value, onChange, showAll = true }: SessionSelectorProps) {
+export function SessionSelector({ value, onChange, showAll = true, disabled = false }: SessionSelectorProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +31,8 @@ export function SessionSelector({ value, onChange, showAll = true }: SessionSele
     <select
       value={value || ''}
       onChange={e => onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+      disabled={disabled}
+      className={`px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent${disabled ? ' bg-gray-100 opacity-60 cursor-not-allowed' : ''}`}
     >
       {showAll && <option value="">All Sessions</option>}
       {sessions.map(session => (

@@ -169,7 +169,7 @@ export const api = {
 
   // Stages
   getStagesWithAmendments: (params: {
-    sessionId: number;
+    sessionId?: number;
     house?: string;
     fromDate?: string;
     toDate?: string;
@@ -177,7 +177,7 @@ export const api = {
     take?: number;
   }) => {
     const query = new URLSearchParams();
-    query.set('sessionId', params.sessionId.toString());
+    if (params.sessionId) query.set('sessionId', params.sessionId.toString());
     if (params.house) query.set('house', params.house);
     if (params.fromDate) query.set('fromDate', params.fromDate);
     if (params.toDate) query.set('toDate', params.toDate);

@@ -15,6 +15,7 @@ export default function StagesOverTimePage() {
   const [house, setHouse] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
+  const [allSessions, setAllSessions] = useState(false);
 
   // Auto-select current session on mount
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
@@ -30,11 +31,11 @@ export default function StagesOverTimePage() {
 
   // Load stages
   const loadStages = useCallback(async () => {
-    if (!sessionId) return;
+    if (!allSessions && !sessionId) return;
     setLoading(true);
     try {
       const result = await api.getStagesWithAmendments({
-        sessionId,
+        sessionId: allSessions ? undefined : sessionId,
         house: house || undefined,
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
@@ -49,7 +50,7 @@ export default function StagesOverTimePage() {
     } finally {
       setLoading(false);
     }
-  }, [sessionId, house, fromDate, toDate, page]);
+  }, [sessionId, house, fromDate, toDate, page, allSessions]);
 
   useEffect(() => {
     if (sessionsLoaded) {
@@ -60,7 +61,7 @@ export default function StagesOverTimePage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(0);
-  }, [sessionId, house, fromDate, toDate]);
+  }, [sessionId, house, fromDate, toDate, allSessions]);
 
   // Format date for display
   const formatDate = (dateStr: string | null) => {
@@ -74,10 +75,10 @@ export default function StagesOverTimePage() {
 
   // Export to CSV
   const exportToCSV = async () => {
-    if (!sessionId) return;
+    if (!allSessions && !sessionId) return;
     try {
       const allResults = await api.getStagesWithAmendments({
-        sessionId,
+        sessionId: allSessions ? undefined : sessionId,
         house: house || undefined,
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
@@ -127,7 +128,16 @@ export default function StagesOverTimePage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Session
             </label>
-            <SessionSelector value={sessionId} onChange={setSessionId} showAll={false} />
+            <SessionSelector value={sessionId} onChange={setSessionId} showAll={false} disabled={allSessions} />
+            <label className="flex items-center gap-2 mt-2 text-sm text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allSessions}
+                onChange={e => setAllSessions(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              All available sessions
+            </label>
           </div>
 
           <div>
