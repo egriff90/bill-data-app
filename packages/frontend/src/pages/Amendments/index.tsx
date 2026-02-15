@@ -306,8 +306,22 @@ export default function AmendmentsPage() {
           >
             Previous
           </button>
-          <span className="px-4 py-2 text-sm text-gray-600">
-            Page {page + 1} of {totalPages}
+          <span className="px-4 py-2 text-sm text-gray-600 flex items-center gap-1">
+            Page
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page + 1}
+              onChange={e => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                  setPage(val - 1);
+                }
+              }}
+              className="w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm"
+            />
+            of {totalPages}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
