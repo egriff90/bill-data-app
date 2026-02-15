@@ -181,7 +181,7 @@ export default function StagesOverTimePage() {
               {total === 0
                 ? 'No amending stage sittings'
                 : (<>
-                    {`Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings.`}
+                    {`Showing ${(page * pageSize + 1).toLocaleString()}–${(page * pageSize + stages.length).toLocaleString()} of ${total.toLocaleString()} amending stage sittings`}
                     {` · Total amendments across matched stages: ${totalAmendments.toLocaleString()}`}
                     <br />
                     The count of amendments shown in the table is for the stage as a whole, not per sitting.
