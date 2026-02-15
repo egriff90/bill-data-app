@@ -70,12 +70,12 @@ router.get('/with-amendments', async (req, res) => {
       }
     }
 
-    // Sort by sitting date (nulls last)
+    // Sort by sitting date descending (nulls last)
     items.sort((a, b) => {
       if (!a.sittingDate && !b.sittingDate) return 0;
       if (!a.sittingDate) return 1;
       if (!b.sittingDate) return -1;
-      return a.sittingDate.localeCompare(b.sittingDate);
+      return b.sittingDate.localeCompare(a.sittingDate);
     });
 
     // Filter by date range
