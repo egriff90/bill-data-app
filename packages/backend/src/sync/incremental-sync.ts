@@ -10,6 +10,7 @@ interface SyncStats {
   billsSkipped: number;
   stagesProcessed: number;
   amendmentsProcessed: number;
+  amendmentsRemoved: number;
   membersProcessed: number;
   errors: string[];
 }
@@ -41,6 +42,7 @@ export async function runIncrementalSync(): Promise<SyncStats> {
     billsSkipped: 0,
     stagesProcessed: 0,
     amendmentsProcessed: 0,
+    amendmentsRemoved: 0,
     membersProcessed: 0,
     errors: [],
   };
@@ -139,6 +141,7 @@ export async function runIncrementalSync(): Promise<SyncStats> {
     console.log(`Bills skipped: ${stats.billsSkipped}`);
     console.log(`Stages: ${stats.stagesProcessed}`);
     console.log(`Amendments: ${stats.amendmentsProcessed}`);
+    console.log(`Amendments removed: ${stats.amendmentsRemoved}`);
     console.log(`Members: ${stats.membersProcessed}`);
     if (stats.errors.length > 0) {
       console.log(`Errors: ${stats.errors.length}`);
@@ -263,6 +266,27 @@ async function processBill(
     for (const amendment of amendments) {
       await processAmendment(amendment, stage.id, memberIdsToFetch, stats);
     }
+
+    // Clean up stale amendments no longer in the API for this stage
+    const apiAmendmentIds = new Set(amendments.map(a => a.amendmentId));
+    const dbAmendments = await prisma.amendment.findMany({
+      where: { billStageId: stage.id },
+      select: { id: true },
+    });
+    const staleIds = dbAmendments
+      .map(a => a.id)
+      .filter(id => !apiAmendmentIds.has(id));
+
+    if (staleIds.length > 0) {
+      console.log(`      Removing ${staleIds.length} stale amendment(s) from stage "${stage.description}" (IDs: ${staleIds.join(', ')})`);
+      await prisma.amendmentSponsor.deleteMany({
+        where: { amendmentId: { in: staleIds } },
+      });
+      await prisma.amendment.deleteMany({
+        where: { id: { in: staleIds } },
+      });
+      stats.amendmentsRemoved += staleIds.length;
+    }
   }
 }
 
@@ -277,7 +301,7 @@ async function processAmendment(
     update: {
       billStageId: billStageId,
       amendmentNumber: amendment.lineNumber?.toString() || null,
-      dNum: amendment.dNum || null,
+      dNum: amendment.dNum ?? null,
       amendmentType: amendment.amendmentType,
       decision: amendment.decision,
       decisionExplanation: amendment.decisionExplanation || null,
@@ -288,7 +312,7 @@ async function processAmendment(
       id: amendment.amendmentId,
       billStageId: billStageId,
       amendmentNumber: amendment.lineNumber?.toString() || null,
-      dNum: amendment.dNum || null,
+      dNum: amendment.dNum ?? null,
       amendmentType: amendment.amendmentType,
       decision: amendment.decision,
       decisionExplanation: amendment.decisionExplanation || null,
