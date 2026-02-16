@@ -70,6 +70,13 @@ export default function StagesOverTimePage() {
     setTimelineData(null);
   }, [sessionId, house, fromDate, toDate, allSessions]);
 
+  // Auto-reload timeline when filters change while in timeline view
+  useEffect(() => {
+    if (timelineData === null && viewMode === 'timeline') {
+      loadTimelineData();
+    }
+  }, [timelineData, viewMode]);
+
   // Format date for display
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-';

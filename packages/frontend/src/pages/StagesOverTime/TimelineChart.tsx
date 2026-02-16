@@ -195,6 +195,18 @@ export default function TimelineChart({
   const dateRange = maxDate - minDate || 1;
   const datePadding = dateRange * 0.05;
 
+  // Generate first-of-month ticks spanning the padded date range
+  const monthlyTicks: number[] = [];
+  const tickStart = new Date(minDate - datePadding);
+  tickStart.setDate(1);
+  tickStart.setHours(0, 0, 0, 0);
+  const tickEnd = maxDate + datePadding;
+  const cursor = new Date(tickStart);
+  while (cursor.getTime() <= tickEnd) {
+    monthlyTicks.push(cursor.getTime());
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
   const maxAmendments = Math.max(...stages.map(s => s.amendmentCount));
 
   // Dummy scatter data to force axis initialization
@@ -227,13 +239,16 @@ export default function TimelineChart({
       {/* Chart */}
       <div className="bg-white border rounded-lg p-4" style={{ position: 'relative' }}>
         <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
+          <ComposedChart margin={{ top: 20, right: 30, bottom: 60, left: 20 }}>
             <XAxis
               dataKey="x"
               type="number"
               scale="time"
               domain={[minDate - datePadding, maxDate + datePadding]}
+              ticks={monthlyTicks}
               tickFormatter={formatAxisDate}
+              angle={-45}
+              textAnchor="end"
               tick={{ fontSize: 12 }}
             />
             <YAxis
