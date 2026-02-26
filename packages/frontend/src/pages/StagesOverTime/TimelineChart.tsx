@@ -237,7 +237,11 @@ export default function TimelineChart({
       </div>
 
       {/* Chart */}
-      <div className="bg-white border rounded-lg p-4" style={{ position: 'relative' }}>
+      <div
+        className="bg-white border rounded-lg p-4"
+        style={{ position: 'relative' }}
+        onMouseLeave={() => { setHoveredId(null); setTooltipInfo(null); }}
+      >
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart margin={{ top: 20, right: 30, bottom: 60, left: 20 }}>
             <XAxis
