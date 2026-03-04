@@ -1,6 +1,6 @@
 # UK Parliament Bill Amendment Query Website
 
-A web application to query UK Parliament bill amendment data, replicating and extending your existing PowerQuery functionality with a local database to handle API rate limiting.
+A web application to query UK Parliament bill amendment data, using a local database to handle API rate limiting.
 
 ## Tech Stack
 
@@ -47,7 +47,7 @@ pnpm --filter @bill-data-app/shared run build
 pnpm sync
 ```
 
-This fetches data from the UK Parliament APIs for the last 4 sessions. It may take 10-30 minutes depending on the amount of data.
+This fetches data from the UK Parliament APIs for the last 3 sessions. It may take 10-30 minutes depending on the amount of data.
 
 3. **Start development servers:**
 
@@ -127,10 +127,10 @@ billDataApp/
 
 ## Sync Job
 
-The sync job replicates your PowerQuery logic:
+The sync job:
 
-1. Fetches bills for the last 4 sessions
-2. Filters out withdrawn, defeated, and enacted bills
+1. Fetches bills for the last 3 sessions
+2. Fetches all bills regardless of status (including withdrawn, defeated, and enacted)
 3. Fetches all stages for each bill
 4. Fetches amendments for each stage
 5. Stores sponsor/member details
