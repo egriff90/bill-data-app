@@ -53,6 +53,7 @@ export interface Amendment {
   id: number;
   amendmentNumber: string | null;
   dNum: string | null;
+  marshalledListText: string | null;
   amendmentType: string;
   decision: string;
   decisionExplanation: string | null;

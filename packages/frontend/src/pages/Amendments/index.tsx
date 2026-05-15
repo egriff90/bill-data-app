@@ -127,8 +127,9 @@ export default function AmendmentsPage() {
         take: 100000,
       });
 
-      const headers = ['dNum', 'Bill', 'Stage', 'House', 'Decision', 'Sponsors', 'Summary'];
+      const headers = ['Published No.', 'D No.', 'Bill', 'Stage', 'House', 'Decision', 'Sponsors', 'Summary'];
       const rows = allResults.items.map(a => [
+        a.marshalledListText || '',
         a.dNum || '',
         a.bill.shortTitle,
         a.billStage.description,

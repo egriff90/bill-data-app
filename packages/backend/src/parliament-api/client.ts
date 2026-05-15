@@ -69,10 +69,11 @@ export class ParliamentApiClient {
   async getSessions(): Promise<ParliamentSession[]> {
     // The Bills API doesn't have a dedicated sessions endpoint,
     // so we'll use known session IDs based on actual API data
-    // Session 39 is the CURRENT session (59th Parliament, post-July 2024 election)
-    // Sessions 40 and 41 don't exist yet in the API
+    // Session 40 is the CURRENT session (2026-27, started May 2026)
+    // Session 39 was 2024-25 (July 2024 – May 2026)
     const sessions: ParliamentSession[] = [
-      { id: 39, name: '2024-25', startDate: '2024-07-17', endDate: null },
+      { id: 40, name: '2026-27', startDate: '2026-05-14', endDate: null },
+      { id: 39, name: '2024-25', startDate: '2024-07-17', endDate: '2026-05-13' },
       { id: 38, name: '2023-24', startDate: '2023-11-07', endDate: '2024-05-30' },
       { id: 37, name: '2022-23', startDate: '2022-05-10', endDate: '2023-10-26' },
     ];

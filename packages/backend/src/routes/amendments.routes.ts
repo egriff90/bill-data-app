@@ -80,6 +80,7 @@ router.get('/', async (req, res) => {
         id: a.id,
         amendmentNumber: a.amendmentNumber,
         dNum: a.dNum,
+        marshalledListText: a.marshalledListText,
         amendmentType: a.amendmentType,
         decision: a.decision,
         decisionExplanation: a.decisionExplanation,
