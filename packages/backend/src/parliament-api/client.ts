@@ -64,6 +64,21 @@ function queuedFetch<T>(url: string): Promise<T> {
   return queue.add(() => fetchWithRetry<T>(url), { throwOnTimeout: true }) as Promise<T>;
 }
 
+// The Bills API returns one page per request and reports totalResults, so keep asking until
+// everything has arrived. A single request silently truncates: one Take=1000 call lost 289 of the
+// 1289 Lords Committee amendments to the Terminally Ill Adults (End of Life) Bill.
+async function fetchAllPages<T>(url: string, pageSize: number): Promise<T[]> {
+  const separator = url.includes('?') ? '&' : '?';
+  const items: T[] = [];
+  for (;;) {
+    const page = await queuedFetch<PaginatedResponse<T>>(
+      `${url}${separator}Take=${pageSize}&Skip=${items.length}`
+    );
+    items.push(...page.items);
+    if (page.items.length === 0 || items.length >= page.totalResults) return items;
+  }
+}
+
 export class ParliamentApiClient {
   // Get all sessions
   async getSessions(): Promise<ParliamentSession[]> {
@@ -81,24 +96,21 @@ export class ParliamentApiClient {
   }
 
   // Get bills for a session
-  async getBillsForSession(sessionId: number, take = 400): Promise<ParliamentBill[]> {
-    const url = `${BILLS_API_BASE}/Bills?Session=${sessionId}&Take=${take}`;
-    const response = await queuedFetch<PaginatedResponse<ParliamentBill>>(url);
-    return response.items;
+  async getBillsForSession(sessionId: number, pageSize = 400): Promise<ParliamentBill[]> {
+    return fetchAllPages<ParliamentBill>(`${BILLS_API_BASE}/Bills?Session=${sessionId}`, pageSize);
   }
 
   // Get all stages for a bill
-  async getBillStages(billId: number): Promise<ParliamentBillStage[]> {
-    const url = `${BILLS_API_BASE}/Bills/${billId}/Stages`;
-    const response = await queuedFetch<PaginatedResponse<ParliamentBillStage>>(url);
-    return response.items;
+  async getBillStages(billId: number, pageSize = 100): Promise<ParliamentBillStage[]> {
+    return fetchAllPages<ParliamentBillStage>(`${BILLS_API_BASE}/Bills/${billId}/Stages`, pageSize);
   }
 
   // Get amendments for a specific bill stage
-  async getAmendments(billId: number, stageId: number, take = 1000): Promise<ParliamentAmendment[]> {
-    const url = `${BILLS_API_BASE}/Bills/${billId}/Stages/${stageId}/Amendments?Take=${take}`;
-    const response = await queuedFetch<PaginatedResponse<ParliamentAmendment>>(url);
-    return response.items;
+  async getAmendments(billId: number, stageId: number, pageSize = 1000): Promise<ParliamentAmendment[]> {
+    return fetchAllPages<ParliamentAmendment>(
+      `${BILLS_API_BASE}/Bills/${billId}/Stages/${stageId}/Amendments`,
+      pageSize
+    );
   }
 
   // Get member details by ID
