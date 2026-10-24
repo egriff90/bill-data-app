@@ -14,7 +14,8 @@ const BILLS_API_BASE = 'https://bills-api.parliament.uk/api/v1';
 export interface ParliamentAmendmentDetail {
   mainHeader: string | null;
   amendmentLocation: string | null;
-  amendmentLines: { text: string; indentation: number; isImage: boolean }[] | null;
+  // hangingIndentation is misnamed: it holds the paragraph label, e.g. "(a)" or "“(a)".
+  amendmentLines: { text: string; indentation: number; hangingIndentation: string | null; isImage: boolean }[] | null;
   explanatoryTextPrefix: string | null;
   explanatoryText: string | null; // HTML
   amendmentNote: string | null; // HTML

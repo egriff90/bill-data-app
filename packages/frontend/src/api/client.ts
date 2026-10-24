@@ -66,7 +66,7 @@ export interface Amendment {
 // Full text of one amendment, fetched live from Parliament by the backend. All fields are plain text.
 export interface AmendmentText {
   location: string | null;
-  lines: { text: string; indentation: number; isImage: boolean }[];
+  lines: { label: string | null; text: string; indentation: number; isImage: boolean }[];
   explanatoryTextPrefix: string | null;
   explanatoryText: string[];
   note: string[];

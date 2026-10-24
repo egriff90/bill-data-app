@@ -117,6 +117,7 @@ export default function AmendmentDetailPage() {
               <div className="space-y-2 text-gray-900 leading-relaxed">
                 {text.lines.map((line, i) => (
                   <p key={i} style={{ paddingLeft: `${line.indentation * 1.25}rem` }}>
+                    {line.label && <span className="mr-2">{line.label}</span>}
                     {line.isImage ? (
                       <span className="text-sm italic text-gray-500">
                         [Image not shown – see the version on bills.parliament.uk]

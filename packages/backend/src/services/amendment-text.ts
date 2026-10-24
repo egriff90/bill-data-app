@@ -7,7 +7,7 @@ import { parliamentApi } from '../parliament-api';
  */
 export interface AmendmentText {
   location: string | null; // e.g. "Clause 8 · Page 4, line 16"
-  lines: { text: string; indentation: number; isImage: boolean }[];
+  lines: { label: string | null; text: string; indentation: number; isImage: boolean }[];
   explanatoryTextPrefix: string | null; // e.g. "Member's explanatory statement"
   explanatoryText: string[];
   note: string[];
@@ -62,6 +62,7 @@ export async function getAmendmentText(billId: number, stageId: number, amendmen
   const text: AmendmentText = {
     location: [detail.mainHeader, detail.amendmentLocation].filter(Boolean).join(' · ') || null,
     lines: (detail.amendmentLines ?? []).map(line => ({
+      label: line.hangingIndentation ? htmlToText(line.hangingIndentation) || null : null,
       text: line.isImage ? '' : htmlToText(line.text ?? ''),
       indentation: Math.max(0, Math.min(line.indentation ?? 0, 6)),
       isImage: !!line.isImage,
