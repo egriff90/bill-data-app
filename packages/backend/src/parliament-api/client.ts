@@ -9,6 +9,16 @@ import type {
 } from '@bill-data-app/shared';
 
 const BILLS_API_BASE = 'https://bills-api.parliament.uk/api/v1';
+
+// The single-amendment endpoint adds the amendment's full text, which the list endpoint omits.
+export interface ParliamentAmendmentDetail {
+  mainHeader: string | null;
+  amendmentLocation: string | null;
+  amendmentLines: { text: string; indentation: number; isImage: boolean }[] | null;
+  explanatoryTextPrefix: string | null;
+  explanatoryText: string | null; // HTML
+  amendmentNote: string | null; // HTML
+}
 const MEMBERS_API_BASE = 'https://members-api.parliament.uk/api';
 
 // Rate limiting: 5 requests per second
@@ -111,6 +121,12 @@ export class ParliamentApiClient {
       `${BILLS_API_BASE}/Bills/${billId}/Stages/${stageId}/Amendments`,
       pageSize
     );
+  }
+
+  // Get one amendment, including its full text
+  async getAmendmentDetail(billId: number, stageId: number, amendmentId: number): Promise<ParliamentAmendmentDetail> {
+    const url = `${BILLS_API_BASE}/Bills/${billId}/Stages/${stageId}/Amendments/${amendmentId}`;
+    return queuedFetch<ParliamentAmendmentDetail>(url);
   }
 
   // Get member details by ID

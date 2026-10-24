@@ -61,7 +61,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 key={item.path}
                 to={item.path}
                 className={`px-4 py-2 transition-colors ${
-                  location.pathname === item.path
+                  location.pathname === item.path ||
+                  (item.path === '/' && location.pathname.startsWith('/amendments/'))
                     ? 'bg-white text-gray-900 font-medium'
                     : 'text-gray-100 hover:bg-gray-800'
                 }`}

@@ -63,6 +63,15 @@ export interface Amendment {
   sponsors: Member[];
 }
 
+// Full text of one amendment, fetched live from Parliament by the backend. All fields are plain text.
+export interface AmendmentText {
+  location: string | null;
+  lines: { text: string; indentation: number; isImage: boolean }[];
+  explanatoryTextPrefix: string | null;
+  explanatoryText: string[];
+  note: string[];
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -144,6 +153,10 @@ export const api = {
     if (params?.take) query.set('take', params.take.toString());
     return fetchApi<PaginatedResponse<Amendment>>(`/amendments?${query}`);
   },
+
+  getAmendment: (id: number) => fetchApi<Amendment>(`/amendments/${id}`),
+
+  getAmendmentText: (id: number) => fetchApi<AmendmentText>(`/amendments/${id}/text`),
 
   getAmendmentStats: (params?: {
     groupBy: 'bill' | 'stage' | 'member' | 'decision';

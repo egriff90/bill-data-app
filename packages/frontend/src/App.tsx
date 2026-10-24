@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import AmendmentsPage from './pages/Amendments';
+import AmendmentDetailPage from './pages/AmendmentDetail';
 import StatisticsPage from './pages/Statistics';
 import BillsPage from './pages/Bills';
 import MemberPage from './pages/Members';
@@ -11,6 +12,7 @@ function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<AmendmentsPage />} />
+        <Route path="/amendments/:id" element={<AmendmentDetailPage />} />
         <Route path="/statistics" element={<StatisticsPage />} />
         <Route path="/bills" element={<BillsPage />} />
         <Route path="/stages" element={<StagesOverTimePage />} />

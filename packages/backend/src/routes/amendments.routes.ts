@@ -1,8 +1,56 @@
 import { Router, type Router as RouterType } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../services/db';
 import { pagination, queryInt, queryString } from './query';
+import { getAmendmentText } from '../services/amendment-text';
 
 const router: RouterType = Router();
+
+const amendmentInclude = {
+  sponsors: {
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      member: true,
+    },
+  },
+  billStage: {
+    include: {
+      bill: {
+        select: {
+          id: true,
+          shortTitle: true,
+          sessionId: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.AmendmentInclude;
+
+type AmendmentWithRelations = Prisma.AmendmentGetPayload<{ include: typeof amendmentInclude }>;
+
+function toAmendmentResponse(a: AmendmentWithRelations) {
+  return {
+    id: a.id,
+    amendmentNumber: a.amendmentNumber,
+    dNum: a.dNum,
+    marshalledListText: a.marshalledListText,
+    amendmentType: a.amendmentType,
+    decision: a.decision,
+    decisionExplanation: a.decisionExplanation,
+    summaryText: a.summaryText,
+    bill: a.billStage.bill,
+    billStage: {
+      id: a.billStage.id,
+      description: a.billStage.description,
+      house: a.billStage.house,
+    },
+    sponsors: a.sponsors.map(s => ({
+      ...s.member,
+      isLead: s.isLead,
+      sortOrder: s.sortOrder,
+    })),
+  };
+}
 
 // GET /api/v1/amendments - Search amendments
 router.get('/', async (req, res) => {
@@ -52,51 +100,13 @@ router.get('/', async (req, res) => {
         skip,
         take,
         orderBy: { id: 'desc' },
-        include: {
-          sponsors: {
-            orderBy: { sortOrder: 'asc' },
-            include: {
-              member: true,
-            },
-          },
-          billStage: {
-            include: {
-              bill: {
-                select: {
-                  id: true,
-                  shortTitle: true,
-                  sessionId: true,
-                },
-              },
-            },
-          },
-        },
+        include: amendmentInclude,
       }),
       prisma.amendment.count({ where }),
     ]);
 
     res.json({
-      items: amendments.map(a => ({
-        id: a.id,
-        amendmentNumber: a.amendmentNumber,
-        dNum: a.dNum,
-        marshalledListText: a.marshalledListText,
-        amendmentType: a.amendmentType,
-        decision: a.decision,
-        decisionExplanation: a.decisionExplanation,
-        summaryText: a.summaryText,
-        bill: a.billStage.bill,
-        billStage: {
-          id: a.billStage.id,
-          description: a.billStage.description,
-          house: a.billStage.house,
-        },
-        sponsors: a.sponsors.map(s => ({
-          ...s.member,
-          isLead: s.isLead,
-          sortOrder: s.sortOrder,
-        })),
-      })),
+      items: amendments.map(toAmendmentResponse),
       total,
       skip,
       take,
@@ -271,6 +281,40 @@ router.get('/stats', async (req, res) => {
   } catch (error) {
     console.error('Error fetching amendment stats:', error);
     res.status(500).json({ error: 'Failed to fetch amendment statistics' });
+  }
+});
+
+// GET /api/v1/amendments/:id - One amendment, from the database
+router.get('/:id', async (req, res) => {
+  const id = queryInt(req.params.id);
+  if (id === undefined) return res.status(404).json({ error: 'Amendment not found' });
+  try {
+    const amendment = await prisma.amendment.findUnique({ where: { id }, include: amendmentInclude });
+    if (!amendment) return res.status(404).json({ error: 'Amendment not found' });
+    return res.json(toAmendmentResponse(amendment));
+  } catch (error) {
+    console.error('Error fetching amendment:', error);
+    return res.status(500).json({ error: 'Failed to fetch amendment' });
+  }
+});
+
+// GET /api/v1/amendments/:id/text - The amendment's full text, fetched live from the Parliament API.
+// Kept separate from /:id so the stored details aren't held up waiting on Parliament.
+router.get('/:id/text', async (req, res) => {
+  const id = queryInt(req.params.id);
+  if (id === undefined) return res.status(404).json({ error: 'Amendment not found' });
+  try {
+    const amendment = await prisma.amendment.findUnique({
+      where: { id },
+      select: { billStageId: true, billStage: { select: { billId: true } } },
+    });
+    if (!amendment) return res.status(404).json({ error: 'Amendment not found' });
+    const text = await getAmendmentText(amendment.billStage.billId, amendment.billStageId, id);
+    if (!text) return res.status(502).json({ error: 'The Parliament API did not return the amendment text' });
+    return res.json(text);
+  } catch (error) {
+    console.error('Error fetching amendment text:', error);
+    return res.status(500).json({ error: 'Failed to fetch amendment text' });
   }
 });
 

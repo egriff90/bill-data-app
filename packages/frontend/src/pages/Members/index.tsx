@@ -232,9 +232,10 @@ export default function MemberPage() {
         {member.recentAmendments.length > 0 ? (
           <div className="space-y-3">
             {member.recentAmendments.map(amendment => (
-              <div
+              <Link
                 key={amendment.id}
-                className="p-3 bg-gray-50 rounded-lg"
+                to={`/amendments/${amendment.id}`}
+                className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -257,7 +258,7 @@ export default function MemberPage() {
                     {amendment.summaryText}
                   </div>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
