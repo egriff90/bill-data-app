@@ -1,19 +1,19 @@
 import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
+import { pagination, queryInt, queryString } from './query';
 
 const router: RouterType = Router();
 
 // GET /api/v1/amendments - Search amendments
 router.get('/', async (req, res) => {
   try {
-    const memberId = req.query.memberId ? parseInt(req.query.memberId as string) : undefined;
-    const billId = req.query.billId ? parseInt(req.query.billId as string) : undefined;
-    const sessionId = req.query.sessionId ? parseInt(req.query.sessionId as string) : undefined;
-    const decision = req.query.decision as string | undefined;
-    const stage = req.query.stage as string | undefined;
-    const house = req.query.house as string | undefined;
-    const skip = parseInt(req.query.skip as string) || 0;
-    const take = parseInt(req.query.take as string) || 100;
+    const memberId = queryInt(req.query.memberId);
+    const billId = queryInt(req.query.billId);
+    const sessionId = queryInt(req.query.sessionId);
+    const decision = queryString(req.query.decision);
+    const stage = queryString(req.query.stage);
+    const house = queryString(req.query.house);
+    const { skip, take } = pagination(req.query);
 
     // Build where clause
     const where: any = {};
@@ -110,10 +110,10 @@ router.get('/', async (req, res) => {
 // GET /api/v1/amendments/stats - Get amendment statistics
 router.get('/stats', async (req, res) => {
   try {
-    const groupBy = req.query.groupBy as string || 'bill';
-    const sessionId = req.query.sessionId ? parseInt(req.query.sessionId as string) : undefined;
-    const memberId = req.query.memberId ? parseInt(req.query.memberId as string) : undefined;
-    const house = req.query.house as string | undefined;
+    const groupBy = queryString(req.query.groupBy) || 'bill';
+    const sessionId = queryInt(req.query.sessionId);
+    const memberId = queryInt(req.query.memberId);
+    const house = queryString(req.query.house);
 
     // Build where clause for filtering
     const baseWhere: any = {};

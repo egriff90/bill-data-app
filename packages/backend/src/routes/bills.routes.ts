@@ -1,17 +1,17 @@
 import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
+import { pagination, queryInt, queryString } from './query';
 
 const router: RouterType = Router();
 
 // GET /api/v1/bills - List bills with optional filtering
 router.get('/', async (req, res) => {
   try {
-    const sessionId = req.query.sessionId ? parseInt(req.query.sessionId as string) : undefined;
-    const skip = parseInt(req.query.skip as string) || 0;
-    const take = parseInt(req.query.take as string) || 100;
+    const sessionId = queryInt(req.query.sessionId);
+    const { skip, take } = pagination(req.query);
 
     // Status filter: 'all', 'active', 'acts', 'withdrawn', 'defeated'
-    const status = (req.query.status as string) || 'all';
+    const status = queryString(req.query.status) || 'all';
 
     const where: any = {};
 
@@ -133,8 +133,7 @@ router.get('/:id/stages/:stageId/amendments', async (req, res) => {
   try {
     const billId = parseInt(req.params.id);
     const stageId = parseInt(req.params.stageId);
-    const skip = parseInt(req.query.skip as string) || 0;
-    const take = parseInt(req.query.take as string) || 100;
+    const { skip, take } = pagination(req.query);
 
     const [amendments, total] = await Promise.all([
       prisma.amendment.findMany({

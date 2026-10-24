@@ -1,14 +1,15 @@
 import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
+import { pagination, queryString } from './query';
 
 const router: RouterType = Router();
 
 // GET /api/v1/members/search - Search members by name
 router.get('/search', async (req, res) => {
   try {
-    const query = req.query.q as string;
-    const house = req.query.house as string | undefined;
-    const take = parseInt(req.query.take as string) || 20;
+    const query = queryString(req.query.q);
+    const house = queryString(req.query.house);
+    const { take } = pagination(req.query, 20, 100);
 
     if (!query || query.length < 2) {
       return res.status(400).json({ error: 'Query must be at least 2 characters' });

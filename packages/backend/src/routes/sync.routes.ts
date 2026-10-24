@@ -1,18 +1,30 @@
 import { Router, type Router as RouterType } from 'express';
+import { createHash, timingSafeEqual } from 'crypto';
 import { prisma } from '../services/db';
 import { runFullSync, runIncrementalSync } from '../sync';
+import { rateLimit } from '../middleware/security';
+import { queryString } from './query';
 
 const router: RouterType = Router();
 
+// Compares digests so the time taken doesn't reveal how much of the key was right.
+function keyMatches(supplied: unknown, expected: string): boolean {
+  if (typeof supplied !== 'string') return false;
+  const a = createHash('sha256').update(supplied).digest();
+  const b = createHash('sha256').update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
 // POST /api/v1/sync/run - Trigger a sync
-router.post('/run', async (req, res) => {
+// Limited per IP so the key can't be guessed by brute force.
+router.post('/run', rateLimit(60 * 60_000, 10), async (req, res) => {
   // Verify API key
   const apiKey = req.headers['x-sync-api-key'];
   const expectedKey = process.env.SYNC_API_KEY;
 
   if (!expectedKey) {
     res.status(500).json({ error: 'SYNC_API_KEY not configured on server' });
-  } else if (!apiKey || apiKey !== expectedKey) {
+  } else if (!keyMatches(apiKey, expectedKey)) {
     res.status(401).json({ error: 'Invalid or missing API key' });
   } else {
     // Check if sync is already running
@@ -23,7 +35,7 @@ router.post('/run', async (req, res) => {
     if (runningSync) {
       res.status(409).json({ error: 'A sync is already running', syncId: runningSync.id });
     } else {
-      const syncType = (req.query.type as string) || 'incremental';
+      const syncType = queryString(req.query.type) || 'incremental';
 
       if (syncType !== 'full' && syncType !== 'incremental') {
         res.status(400).json({ error: 'Invalid sync type. Must be "full" or "incremental"' });

@@ -1,17 +1,17 @@
 import { Router, type Router as RouterType } from 'express';
 import { prisma } from '../services/db';
+import { pagination, queryInt, queryString } from './query';
 
 const router: RouterType = Router();
 
 // GET /api/v1/stages/with-amendments - Stages that have amendments, with sitting dates
 router.get('/with-amendments', async (req, res) => {
   try {
-    const sessionId = req.query.sessionId ? parseInt(req.query.sessionId as string) : undefined;
-    const house = req.query.house as string | undefined;
-    const fromDate = req.query.fromDate as string | undefined;
-    const toDate = req.query.toDate as string | undefined;
-    const skip = parseInt(req.query.skip as string) || 0;
-    const take = parseInt(req.query.take as string) || 100;
+    const sessionId = queryInt(req.query.sessionId);
+    const house = queryString(req.query.house);
+    const fromDate = queryString(req.query.fromDate);
+    const toDate = queryString(req.query.toDate);
+    const { skip, take } = pagination(req.query);
 
     const where: any = {
       amendments: { some: {} },
